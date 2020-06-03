@@ -1,4 +1,4 @@
-package pl.cwikla.bazy.projekt;
+package pl.cwikla.bazy.projekt.datamanage;
 
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
@@ -40,10 +40,6 @@ public class DBFiller {
         return SESSION_FACTORY.openSession();
     }
 
-    public static void main(String[] args) throws IOException, InterruptedException {
-        new DBFiller().updateDB();
-    }
-
     public void updateDB() throws IOException, InterruptedException {
         DataDownloader downloader = new DataDownloader();
         session.set(getSession());
@@ -52,7 +48,7 @@ public class DBFiller {
         LocalDate date = getLastUpdate();
 
         DataParser.Result result;
-        while (date.isBefore(LocalDate.parse("2020-02-28"))) {
+        while (date.isBefore(LocalDate.now())) {
             try (InputStream inputStream = downloader.downloadFile(date)) {
                 result = new DataParser().parseData(inputStream);
                 while (result.hasNextRecord()) {
@@ -80,10 +76,10 @@ public class DBFiller {
         Query query = session.get().createQuery(criteriaQuery);
 
         LocalDate lastUpdate;
-        try{
+        try {
             lastUpdate = ((DataRecord) query.setFirstResult(0).setMaxResults(1).getSingleResult()).getDate();
             lastUpdate = lastUpdate.plusDays(1);
-        }catch (NoResultException nre){
+        } catch (NoResultException nre) {
             lastUpdate = LocalDate.parse("2020-02-24");
         }
         return lastUpdate;

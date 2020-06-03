@@ -1,4 +1,4 @@
-package pl.cwikla.bazy.projekt;
+package pl.cwikla.bazy.projekt.datamanage;
 
 import java.io.BufferedReader;
 import java.io.InputStream;

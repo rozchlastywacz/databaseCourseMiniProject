@@ -5,7 +5,7 @@ import java.time.LocalDate;
 
 @Entity
 @Table(
-        uniqueConstraints ={@UniqueConstraint(columnNames = {"province_ID", "date"})}
+        uniqueConstraints = {@UniqueConstraint(columnNames = {"province_ID", "date"})}
 )
 public class DataRecord {
     @Id
@@ -33,5 +33,21 @@ public class DataRecord {
 
     public LocalDate getDate() {
         return date;
+    }
+
+    public Province getProvince() {
+        return province;
+    }
+
+    public int getNumberOfCases() {
+        return numberOfCases;
+    }
+
+    @Override
+    public String toString() {
+        return "DataRecord{" +
+                "date=" + date +
+                ", numberOfCases=" + numberOfCases +
+                "}\n";
     }
 }

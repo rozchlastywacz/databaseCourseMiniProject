@@ -1,9 +1,10 @@
 package pl.cwikla.bazy.projekt.model;
 
 import javax.persistence.*;
+
 @Entity
 @Table(
-        uniqueConstraints ={@UniqueConstraint(columnNames = {"region_ID", "code"})}
+        uniqueConstraints = {@UniqueConstraint(columnNames = {"region_ID", "code"})}
 )
 public class Province {
     @Id
@@ -27,5 +28,18 @@ public class Province {
 
     public void setRegion(Region region) {
         this.region = region;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getID() {
+        return ID;
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 }

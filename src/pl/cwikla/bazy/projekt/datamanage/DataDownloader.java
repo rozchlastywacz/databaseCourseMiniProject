@@ -1,4 +1,4 @@
-package pl.cwikla.bazy.projekt;
+package pl.cwikla.bazy.projekt.datamanage;
 
 import jdk.incubator.http.HttpClient;
 import jdk.incubator.http.HttpRequest;
