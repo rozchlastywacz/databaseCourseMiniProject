@@ -14,7 +14,7 @@ Model danych zawiera:
  1. odpowiednik kraju - State
  2. odpowiednik pierszego stopnia podziału terytorialnego - Region
  3. odpowiednik drugiego stopnia podziału terytorialnego - Province
- 4. wpis z datą i liczbą przypadków zarażenia - DataRecord
+ 4. wpis z datą i liczbą przypadków zarażenia - DataRecord  
 Te obiekty mapowane są z użyciem HIbernate.
 Narzucone są odpowiednie warunki integralnościowe, by nie powielać wpisów.
 Wizualizacja zawiera wykres liczby chorych od czasu w zależności od wybranych opcji.
