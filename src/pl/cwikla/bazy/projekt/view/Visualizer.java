@@ -1,10 +1,11 @@
 package pl.cwikla.bazy.projekt.view;
 
-import pl.cwikla.bazy.projekt.datamanage.DBFiller;
+import pl.cwikla.bazy.projekt.datamanage.*;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
+import java.util.NoSuchElementException;
 
 public class Visualizer {
     private final JFrame mainWindow;
@@ -27,8 +28,17 @@ public class Visualizer {
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        new DBFiller().updateDB();
+        DBFiller filler = new DBFiller();
+        DBGetter getter = new DBGetter();
+        DataDownloader downloader = new DataDownloader();
+        if(filler.updateDB(new DataSourceItaly(downloader, getter.getLastUpdate("ITA")))){
+            System.out.println("Italy is up to date");
+        }
+        if(filler.updateDB(new DataSourceUSA(downloader, getter.getLastUpdate("USA")))){
+            System.out.println("USA is up to date");
+        }
         new Visualizer();
+
     }
 
 }

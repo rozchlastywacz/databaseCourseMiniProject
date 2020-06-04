@@ -7,10 +7,12 @@ import pl.cwikla.bazy.projekt.model.Province;
 import pl.cwikla.bazy.projekt.model.Region;
 import pl.cwikla.bazy.projekt.model.State;
 
+import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 
@@ -164,5 +166,35 @@ public class DBGetter {
         session.remove();
 
         return dataRecords;
+    }
+
+    public LocalDate getLastUpdate(String stateName) {
+        session.set(getSession());
+        Transaction tx = session.get().beginTransaction();
+        String hql = "select dt.date from DataRecord as dt" +
+                "    inner join dt.province as pr" +
+                "    inner join pr.region as rg" +
+                "    inner join rg.state as st" +
+                "    where st.name = :stateName" +
+                "    order by dt.date desc";
+        TypedQuery<LocalDate> query = session.get().createQuery(hql, LocalDate.class);
+        query.setParameter("stateName", stateName);
+        query.setMaxResults(1);
+        LocalDate lastUpdate = null;
+        try {
+            lastUpdate = query.getSingleResult();
+        } catch (NoResultException nre) {
+            if (stateName.equals("ITA"))
+                lastUpdate = LocalDate.parse("2020-02-24");
+            else if(stateName.equals("USA"))
+                lastUpdate = LocalDate.parse("2020-01-21");
+            else
+                lastUpdate = LocalDate.parse("2020-01-01");
+        }
+        tx.commit();
+        session.get().close();
+        session.remove();
+
+        return lastUpdate;
     }
 }

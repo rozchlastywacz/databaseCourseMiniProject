@@ -16,9 +16,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import java.io.IOException;
-import java.io.InputStream;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 public class DBFiller {
     private static final String LINE_TO_SKIP = "In fase di definizione/aggiornamento";
@@ -40,62 +38,33 @@ public class DBFiller {
         return SESSION_FACTORY.openSession();
     }
 
-    public void updateDB() throws IOException, InterruptedException {
-        DataDownloader downloader = new DataDownloader();
+
+    public boolean updateDB(DataSource dataSource) throws IOException, InterruptedException {
         session.set(getSession());
         Transaction tx = session.get().beginTransaction();
 
-        LocalDate date = getLastUpdate();
 
-        DataParser.Result result;
-        while (date.isBefore(LocalDate.now())) {
-            try (InputStream inputStream = downloader.downloadFile(date)) {
-                result = new DataParser().parseData(inputStream);
-                while (result.hasNextRecord()) {
-                    result.moveToNextRecord();
-                    if (!result.getValue("denominazione_provincia").equals(LINE_TO_SKIP)) {
-                        addDataRecord(result);
-                    }
-                }
-            }
-            date = date.plusDays(1);
+        while(dataSource.moveToNextRecord()){
+            addDataRecord(dataSource);
         }
 
         tx.commit();
         session.get().close();
         session.remove();
+        return true;
     }
 
-    private LocalDate getLastUpdate() {
-        CriteriaBuilder criteriaBuilder = session.get().getCriteriaBuilder();
-        CriteriaQuery<DataRecord> criteriaQuery = criteriaBuilder.createQuery(DataRecord.class);
-        Root<DataRecord> root = criteriaQuery.from(DataRecord.class);
-        criteriaQuery
-                .select(root)
-                .orderBy(criteriaBuilder.desc(root.get("date")));
-        Query query = session.get().createQuery(criteriaQuery);
-
-        LocalDate lastUpdate;
-        try {
-            lastUpdate = ((DataRecord) query.setFirstResult(0).setMaxResults(1).getSingleResult()).getDate();
-            lastUpdate = lastUpdate.plusDays(1);
-        } catch (NoResultException nre) {
-            lastUpdate = LocalDate.parse("2020-02-24");
-        }
-        return lastUpdate;
-    }
-
-    private void addDataRecord(DataParser.Result result) {
-        LocalDate date = LocalDateTime.parse(result.getValue("data")).toLocalDate();
-        int numberOfCases = Integer.parseInt(result.getValue("totale_casi"));
+    private void addDataRecord(DataSource dataSource) {
+        LocalDate date = dataSource.getDate();
+        int numberOfCases = dataSource.getNumberOfCases();
         DataRecord dataRecord = new DataRecord(date, numberOfCases);
-        String provinceName = result.getValue("denominazione_provincia");
-        dataRecord.setProvince(getOrCreateProvince(provinceName, result));
+        String provinceName = dataSource.getProvinceName();
+        dataRecord.setProvince(getOrCreateProvince(provinceName, dataSource));
         session.get().save(dataRecord);
     }
 
-    private Province getOrCreateProvince(String provinceName, DataParser.Result result) {
-        String code = result.getValue("codice_provincia");
+    private Province getOrCreateProvince(String provinceName, DataSource dataSource) {
+        String code = dataSource.getProvinceCode();
 
         CriteriaBuilder criteriaBuilder = session.get().getCriteriaBuilder();
         CriteriaQuery<Province> criteriaQuery = criteriaBuilder.createQuery(Province.class);
@@ -111,16 +80,16 @@ public class DBFiller {
             province = (Province) query.getSingleResult();
         } catch (NoResultException nre) {
             province = new Province(provinceName, code);
-            String regionName = result.getValue("denominazione_regione");
-            province.setRegion(getOrCreateRegion(regionName, result));
+            String regionName = dataSource.getRegionName();
+            province.setRegion(getOrCreateRegion(regionName, dataSource));
             session.get().save(province);
 
         }
         return province;
     }
 
-    private Region getOrCreateRegion(String regionName, DataParser.Result result) {
-        String code = result.getValue("codice_regione");
+    private Region getOrCreateRegion(String regionName, DataSource dataSource) {
+        String code = dataSource.getRegionCode();
 
         CriteriaBuilder criteriaBuilder = session.get().getCriteriaBuilder();
         CriteriaQuery<Region> criteriaQuery = criteriaBuilder.createQuery(Region.class);
@@ -135,7 +104,7 @@ public class DBFiller {
             region = (Region) query.getSingleResult();
         } catch (NoResultException nre) {
             region = new Region(regionName, code);
-            String stateName = result.getValue("stato");
+            String stateName = dataSource.getStateName();
             region.setState(getOrCreateState(stateName));
             session.get().save(region);
         }

@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class DataParser {
-    public Result parseData(InputStream inputStream) {
+    public static Result parseData(InputStream inputStream) {
         BufferedReader data = new BufferedReader(new InputStreamReader(inputStream));
         var iter = data.lines().iterator();
         if (iter.hasNext()) {
